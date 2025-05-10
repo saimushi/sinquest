@@ -20,13 +20,24 @@
             height: 600,
             backgroundColor: '#ffffff',
             parent: 'phaser-example',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 0 },
+                    debug: false
+                }
+            },
             scene: {
                 preload: preload,
-                create: create
+                create: create,
+                update: update
             }
         };
 
         var game = new Phaser.Game(config);
+
+        var player;
+        var cursors;
 
         function preload ()
         {
@@ -40,8 +51,34 @@ console.log('create function called');
 
             //  This creates a simple sprite that is using our loaded image and
             //  adds it to the center of the screen
-            var sprite = this.add.sprite(100, 100, 'hero');
-            sprite.setScale(10);
+            player = this.physics.add.sprite(100, 100, 'hero');
+            player.setScale(10);
+            player.setCollideWorldBounds(true);
+
+            cursors = this.input.keyboard.createCursorKeys();
+        }
+
+        function update ()
+        {
+            player.setVelocity(0);
+
+            if (cursors.up.isDown)
+            {
+                player.setVelocityY(-30);
+            }
+            else if (cursors.down.isDown)
+            {
+                player.setVelocityY(30);
+            }
+
+            if (cursors.left.isDown)
+            {
+                player.setVelocityX(-30);
+            }
+            else if (cursors.right.isDown)
+            {
+                player.setVelocityX(30);
+            }
         }
 
     </script>
