@@ -6,6 +6,7 @@ class FieldScene extends Phaser.Scene {
         this.cursors = null;
         this.isMoving = false; // グリッド移動中かどうか
         this.moveSpeed = 150; // グリッド移動のスピード（ms）
+        this.playerDirection = 'down'; // プレイヤーの現在の向き
     }
 
     create() {
@@ -18,6 +19,9 @@ class FieldScene extends Phaser.Scene {
 
         // 簡単なマップデータを作成（後でJSONファイルなどから読み込むように拡張可能）
         this.createMap(mapWidth, mapHeight, tileSize);
+
+        // 歩行アニメーションを作成
+        this.createAnimations();
 
         // プレイヤーキャラクターを作成
         this.createPlayer();
@@ -37,6 +41,68 @@ class FieldScene extends Phaser.Scene {
             padding: { x: 5, y: 5 }
         });
         this.debugText.setScrollFactor(0); // カメラに追従しない
+    }
+
+    createAnimations() {
+        // 下方向の歩行アニメーション (brave_01, 02, 03)
+        this.anims.create({
+            key: 'walk_down',
+            frames: [
+                { key: 'player_1' },
+                { key: 'player_2' },
+                { key: 'player_3' },
+                { key: 'player_2' }
+            ],
+            frameRate: 8,
+            repeat: -1
+        });
+
+        // 左方向の歩行アニメーション (brave_04, 05, 06)
+        this.anims.create({
+            key: 'walk_left',
+            frames: [
+                { key: 'player_4' },
+                { key: 'player_5' },
+                { key: 'player_6' },
+                { key: 'player_5' }
+            ],
+            frameRate: 8,
+            repeat: -1
+        });
+
+        // 右方向の歩行アニメーション (brave_07, 08, 09)
+        this.anims.create({
+            key: 'walk_right',
+            frames: [
+                { key: 'player_7' },
+                { key: 'player_8' },
+                { key: 'player_9' },
+                { key: 'player_8' }
+            ],
+            frameRate: 8,
+            repeat: -1
+        });
+
+        // 上方向の歩行アニメーション (brave_10, 11, 12)
+        this.anims.create({
+            key: 'walk_up',
+            frames: [
+                { key: 'player_10' },
+                { key: 'player_11' },
+                { key: 'player_12' },
+                { key: 'player_11' }
+            ],
+            frameRate: 8,
+            repeat: -1
+        });
+
+        // アイドル（立ち）状態のフレーム
+        this.idleFrames = {
+            down: 'player_1',
+            left: 'player_4',
+            right: 'player_7',
+            up: 'player_10'
+        };
     }
 
     createMap(mapWidth, mapHeight, tileSize) {
@@ -96,7 +162,8 @@ class FieldScene extends Phaser.Scene {
         const startX = 15 * tileSize;
         const startY = 10 * tileSize;
 
-        this.player = this.add.image(startX, startY, 'player');
+        // spriteを使用してアニメーション対応
+        this.player = this.add.sprite(startX, startY, 'player_1');
         this.player.setOrigin(0, 0);
         this.player.setDisplaySize(tileSize, tileSize);
 
@@ -136,6 +203,7 @@ class FieldScene extends Phaser.Scene {
         this.debugText.setText([
             `Position: (${this.player.gridX}, ${this.player.gridY})`,
             `Tile: ${this.getTileTypeAt(this.player.gridX, this.player.gridY)}`,
+            `Direction: ${this.playerDirection}`,
             `Control: ${controlMethod}`
         ]);
     }
@@ -156,6 +224,29 @@ class FieldScene extends Phaser.Scene {
             return;
         }
 
+        // 移動方向を判定してアニメーションを設定
+        let direction = 'down';
+        let animKey = 'walk_down';
+
+        if (dy < 0) {
+            direction = 'up';
+            animKey = 'walk_up';
+        } else if (dy > 0) {
+            direction = 'down';
+            animKey = 'walk_down';
+        } else if (dx < 0) {
+            direction = 'left';
+            animKey = 'walk_left';
+        } else if (dx > 0) {
+            direction = 'right';
+            animKey = 'walk_right';
+        }
+
+        this.playerDirection = direction;
+
+        // 歩行アニメーションを再生
+        this.player.play(animKey);
+
         // グリッド移動開始
         this.isMoving = true;
         this.player.gridX = newGridX;
@@ -174,6 +265,9 @@ class FieldScene extends Phaser.Scene {
             ease: 'Linear',
             onComplete: () => {
                 this.isMoving = false;
+                // アニメーション停止してアイドルフレームに戻す
+                this.player.stop();
+                this.player.setTexture(this.idleFrames[this.playerDirection]);
             }
         });
     }
