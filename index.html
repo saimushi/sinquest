@@ -1,50 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
     <meta charset="utf-8">
-    <title>My Phaser Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SinQuest - Dragon Quest Style RPG</title>
     <style>
         body {
             margin: 0;
+            padding: 0;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
     </style>
-    <script src="//cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+
+    <!-- Phaser 3 -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+
+    <!-- Game Config -->
+    <script src="js/config/gameConfig.js"></script>
+
+    <!-- Game Scenes -->
+    <script src="js/scenes/BootScene.js"></script>
+    <script src="js/scenes/TitleScene.js"></script>
+    <script src="js/scenes/FieldScene.js"></script>
+
+    <!-- Main Game -->
+    <script src="js/main.js"></script>
 </head>
 <body>
-
-    <script>
-
-        var config = {
-            type: Phaser.AUTO,
-            width: 800,
-            height: 600,
-            backgroundColor: '#ffffff',
-            parent: 'phaser-example',
-            scene: {
-                preload: preload,
-                create: create
-            }
-        };
-
-        var game = new Phaser.Game(config);
-
-        function preload ()
-        {
-console.log('preload function called');
-            //  You can load assets here
-            this.load.image('hero', 'assets/hero.png').on('loaderror', function (texture) { alert('Error loading hero.png'); });
-        };
-
-        function create () {
-console.log('create function called');
-
-            //  This creates a simple sprite that is using our loaded image and
-            //  adds it to the center of the screen
-            var sprite = this.add.sprite(100, 100, 'hero');
-            sprite.setScale(10);
-        }
-
-    </script>
-
+    <!-- ゲームはここに自動的に追加されます -->
 </body>
 </html>
