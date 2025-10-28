@@ -1,3 +1,11 @@
+// グローバルなバーチャル入力状態
+window.VirtualInput = {
+    up: false,
+    down: false,
+    left: false,
+    right: false
+};
+
 // メインゲームの初期化
 window.onload = function() {
     const config = {
@@ -7,6 +15,7 @@ window.onload = function() {
         zoom: GameConfig.scale,
         pixelArt: true, // ピクセルアートをシャープに表示
         backgroundColor: '#000000',
+        parent: 'game-canvas-wrapper', // キャンバスの親要素を指定
         physics: {
             default: 'arcade',
             arcade: {
@@ -22,4 +31,49 @@ window.onload = function() {
     };
 
     const game = new Phaser.Game(config);
+
+    // バーチャル十字キーのイベント設定
+    setupVirtualControls();
 };
+
+// バーチャルコントロールのセットアップ
+function setupVirtualControls() {
+    const buttons = document.querySelectorAll('.d-pad-button');
+
+    buttons.forEach(button => {
+        const direction = button.dataset.direction;
+
+        // タッチスタート/マウスダウン
+        button.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            window.VirtualInput[direction] = true;
+        });
+
+        button.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            window.VirtualInput[direction] = true;
+        });
+
+        // タッチエンド/マウスアップ
+        button.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            window.VirtualInput[direction] = false;
+        });
+
+        button.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            window.VirtualInput[direction] = false;
+        });
+
+        // タッチキャンセル
+        button.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            window.VirtualInput[direction] = false;
+        });
+
+        // マウスが離れた時
+        button.addEventListener('mouseleave', (e) => {
+            window.VirtualInput[direction] = false;
+        });
+    });
+}

@@ -108,17 +108,18 @@ class FieldScene extends Phaser.Scene {
     update() {
         if (!this.player || this.isMoving) return;
 
-        // 方向キー入力をチェック
+        // 方向キー入力をチェック（キーボード + バーチャル十字キー）
         let moveX = 0;
         let moveY = 0;
 
-        if (this.cursors.left.isDown) {
+        // キーボード入力
+        if (this.cursors.left.isDown || window.VirtualInput.left) {
             moveX = -1;
-        } else if (this.cursors.right.isDown) {
+        } else if (this.cursors.right.isDown || window.VirtualInput.right) {
             moveX = 1;
-        } else if (this.cursors.up.isDown) {
+        } else if (this.cursors.up.isDown || window.VirtualInput.up) {
             moveY = -1;
-        } else if (this.cursors.down.isDown) {
+        } else if (this.cursors.down.isDown || window.VirtualInput.down) {
             moveY = 1;
         }
 
@@ -128,10 +129,14 @@ class FieldScene extends Phaser.Scene {
         }
 
         // デバッグ情報更新
+        const controlMethod = (window.VirtualInput.up || window.VirtualInput.down ||
+                               window.VirtualInput.left || window.VirtualInput.right)
+                               ? 'Touch Controls' : 'Arrow Keys';
+
         this.debugText.setText([
             `Position: (${this.player.gridX}, ${this.player.gridY})`,
             `Tile: ${this.getTileTypeAt(this.player.gridX, this.player.gridY)}`,
-            `Use Arrow Keys to Move`
+            `Control: ${controlMethod}`
         ]);
     }
 
