@@ -7,6 +7,10 @@ class FieldScene extends Phaser.Scene {
         this.isMoving = false; // グリッド移動中かどうか
         this.moveSpeed = 150; // グリッド移動のスピード（ms）
         this.playerDirection = 'down'; // プレイヤーの現在の向き
+        this.npcs = []; // NPCリスト
+        this.messageWindow = null; // メッセージウィンドウ
+        this.interactKey = null; // インタラクションキー
+        this.actionPressed = false; // Aボタン押下状態管理
     }
 
     create() {
@@ -30,8 +34,15 @@ class FieldScene extends Phaser.Scene {
         this.cameras.main.setBounds(0, 0, mapWidth * tileSize, mapHeight * tileSize);
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
 
+        // NPCを配置
+        this.createNPCs();
+
+        // メッセージウィンドウを作成
+        this.messageWindow = new MessageWindow(this);
+
         // キーボード入力
         this.cursors = this.input.keyboard.createCursorKeys();
+        this.interactKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         // デバッグ情報表示
         this.debugText = this.add.text(10, 10, '', {
@@ -41,6 +52,32 @@ class FieldScene extends Phaser.Scene {
             padding: { x: 5, y: 5 }
         });
         this.debugText.setScrollFactor(0); // カメラに追従しない
+    }
+
+    createNPCs() {
+        const tileSize = GameConfig.tileSize;
+
+        // NPC1: 看護師（城の近く）
+        const npc1 = {
+            sprite: this.add.sprite(12 * tileSize, 12 * tileSize, 'npc_nurse'),
+            gridX: 12,
+            gridY: 12,
+            message: 'ようこそ、SinQuestの世界へ！\nここは冒険の始まりの地です。'
+        };
+        npc1.sprite.setOrigin(0, 0);
+        npc1.sprite.setDisplaySize(tileSize, tileSize);
+        this.npcs.push(npc1);
+
+        // NPC2: 看護師（別の場所）
+        const npc2 = {
+            sprite: this.add.sprite(18 * tileSize, 10 * tileSize, 'npc_nurse'),
+            gridX: 18,
+            gridY: 10,
+            message: '北には危険なモンスターが\nいると聞きました。\n気をつけてくださいね！'
+        };
+        npc2.sprite.setOrigin(0, 0);
+        npc2.sprite.setDisplaySize(tileSize, tileSize);
+        this.npcs.push(npc2);
     }
 
     createAnimations() {
@@ -173,7 +210,34 @@ class FieldScene extends Phaser.Scene {
     }
 
     update() {
-        if (!this.player || this.isMoving) return;
+        if (!this.player) return;
+
+        // メッセージウィンドウが表示されている場合
+        if (this.messageWindow && this.messageWindow.isVisible()) {
+            // SPACEキーまたはAボタンでメッセージ送り/閉じる
+            if (Phaser.Input.Keyboard.JustDown(this.interactKey) ||
+                (window.VirtualInput.action && !this.actionPressed)) {
+                this.messageWindow.skipTyping();
+                this.actionPressed = true;
+            }
+            if (!window.VirtualInput.action) {
+                this.actionPressed = false;
+            }
+            return; // 会話中は移動不可
+        }
+
+        // 移動中は他の操作不可
+        if (this.isMoving) return;
+
+        // SPACEキーまたはAボタンでNPCと会話
+        if (Phaser.Input.Keyboard.JustDown(this.interactKey) ||
+            (window.VirtualInput.action && !this.actionPressed)) {
+            this.tryInteract();
+            this.actionPressed = true;
+        }
+        if (!window.VirtualInput.action) {
+            this.actionPressed = false;
+        }
 
         // 方向キー入力をチェック（キーボード + バーチャル十字キー）
         let moveX = 0;
@@ -204,8 +268,30 @@ class FieldScene extends Phaser.Scene {
             `Position: (${this.player.gridX}, ${this.player.gridY})`,
             `Tile: ${this.getTileTypeAt(this.player.gridX, this.player.gridY)}`,
             `Direction: ${this.playerDirection}`,
-            `Control: ${controlMethod}`
+            `Control: ${controlMethod}`,
+            `Press SPACE to talk`
         ]);
+    }
+
+    tryInteract() {
+        // プレイヤーが向いている方向の座標を計算
+        let targetX = this.player.gridX;
+        let targetY = this.player.gridY;
+
+        switch(this.playerDirection) {
+            case 'up': targetY -= 1; break;
+            case 'down': targetY += 1; break;
+            case 'left': targetX -= 1; break;
+            case 'right': targetX += 1; break;
+        }
+
+        // その座標にNPCがいるかチェック
+        const npc = this.npcs.find(n => n.gridX === targetX && n.gridY === targetY);
+
+        if (npc) {
+            // NPCと会話開始
+            this.messageWindow.show(npc.message);
+        }
     }
 
     movePlayer(dx, dy) {

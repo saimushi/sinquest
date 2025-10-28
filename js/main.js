@@ -3,7 +3,8 @@ window.VirtualInput = {
     up: false,
     down: false,
     left: false,
-    right: false
+    right: false,
+    action: false // Aボタン（インタラクション）
 };
 
 // メインゲームの初期化
@@ -76,4 +77,28 @@ function setupVirtualControls() {
             window.VirtualInput[direction] = false;
         });
     });
+
+    // Aボタン（インタラクション）
+    const actionButton = document.getElementById('btn-action');
+    if (actionButton) {
+        actionButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            window.VirtualInput.action = true;
+        });
+
+        actionButton.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            window.VirtualInput.action = true;
+        });
+
+        actionButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            window.VirtualInput.action = false;
+        });
+
+        actionButton.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            window.VirtualInput.action = false;
+        });
+    }
 }

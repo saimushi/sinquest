@@ -42,11 +42,22 @@
             box-sizing: border-box;
         }
 
+        #controls-wrapper {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
         #d-pad {
             position: relative;
             width: 200px;
             height: 200px;
-            margin: 0 auto;
+        }
+
+        #action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .d-pad-button {
@@ -92,6 +103,29 @@
             right: 0;
         }
 
+        .action-button {
+            width: 70px;
+            height: 70px;
+            background-color: rgba(255, 200, 0, 0.3);
+            border: 2px solid rgba(255, 200, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .action-button:active {
+            background-color: rgba(255, 200, 0, 0.6);
+            transform: scale(0.95);
+        }
+
         /* タッチデバイス（スマホ・タブレット）でのみ表示 */
         @media (hover: none) and (pointer: coarse) {
             #mobile-controls {
@@ -114,6 +148,9 @@
     <!-- Game Config -->
     <script src="js/config/gameConfig.js"></script>
 
+    <!-- Game Entities -->
+    <script src="js/entities/MessageWindow.js"></script>
+
     <!-- Game Scenes -->
     <script src="js/scenes/BootScene.js"></script>
     <script src="js/scenes/TitleScene.js"></script>
@@ -130,11 +167,16 @@
 
         <!-- モバイル用バーチャル十字キー -->
         <div id="mobile-controls">
-            <div id="d-pad">
-                <div id="btn-up" class="d-pad-button" data-direction="up">↑</div>
-                <div id="btn-down" class="d-pad-button" data-direction="down">↓</div>
-                <div id="btn-left" class="d-pad-button" data-direction="left">←</div>
-                <div id="btn-right" class="d-pad-button" data-direction="right">→</div>
+            <div id="controls-wrapper">
+                <div id="d-pad">
+                    <div id="btn-up" class="d-pad-button" data-direction="up">↑</div>
+                    <div id="btn-down" class="d-pad-button" data-direction="down">↓</div>
+                    <div id="btn-left" class="d-pad-button" data-direction="left">←</div>
+                    <div id="btn-right" class="d-pad-button" data-direction="right">→</div>
+                </div>
+                <div id="action-buttons">
+                    <div id="btn-action" class="action-button">A</div>
+                </div>
             </div>
         </div>
     </div>
