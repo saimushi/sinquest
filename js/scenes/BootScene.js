@@ -36,8 +36,12 @@ class BootScene extends Phaser.Scene {
         });
 
         // キャラクターチップ（プレイヤー）
-        // brave_01.png を使用（勇者）
-        this.load.image('player', 'assets/charachip/character_01/brave_01.png');
+        // 歩行アニメーション用に12フレームを読み込み
+        // 下(1-3), 左(4-6), 右(7-9), 上(10-12)
+        for (let i = 1; i <= 12; i++) {
+            const frameNum = i.toString().padStart(2, '0');
+            this.load.image(`player_${i}`, `assets/charachip/character_01/brave_${frameNum}.png`);
+        }
 
         // マップチップ（地形タイル）
         // 実際に存在するファイル名を使用
