@@ -146,7 +146,8 @@ class FieldScene extends Phaser.Scene {
                 sprite: this.add.sprite(npcData.x * tileSize, npcData.y * tileSize, npcData.sprite),
                 gridX: npcData.x,
                 gridY: npcData.y,
-                message: npcData.message
+                message: npcData.message,
+                walkable: npcData.walkable !== undefined ? npcData.walkable : true // デフォルトはすり抜け可能
             };
             npc.sprite.setOrigin(0, 0);
             npc.sprite.setDisplaySize(tileSize, tileSize);
@@ -389,20 +390,7 @@ class FieldScene extends Phaser.Scene {
         const newGridX = this.player.gridX + dx;
         const newGridY = this.player.gridY + dy;
 
-        // マップ範囲チェック
-        if (newGridX < 0 || newGridX >= this.currentMapData.width ||
-            newGridY < 0 || newGridY >= this.currentMapData.height) {
-            return;
-        }
-
-        const tileId = this.currentMapData.tiles[newGridY][newGridX];
-
-        // 移動可能かチェック
-        if (!this.mapLoader.canWalkOn(tileId)) {
-            return;
-        }
-
-        // 移動方向を判定してアニメーションを設定
+        // 移動方向を判定
         let direction = 'down';
         let animKey = 'walk_down';
 
@@ -420,6 +408,39 @@ class FieldScene extends Phaser.Scene {
             animKey = 'walk_right';
         }
 
+        // マップ範囲チェック
+        if (newGridX < 0 || newGridX >= this.currentMapData.width ||
+            newGridY < 0 || newGridY >= this.currentMapData.height) {
+            // 移動できないが向きは変える
+            this.playerDirection = direction;
+            this.player.setTexture(this.idleFrames[direction]);
+            return;
+        }
+
+        const tileId = this.currentMapData.tiles[newGridY][newGridX];
+
+        // タイルが移動可能かチェック
+        if (!this.mapLoader.canWalkOn(tileId)) {
+            // 移動できないが向きは変える
+            this.playerDirection = direction;
+            this.player.setTexture(this.idleFrames[direction]);
+            return;
+        }
+
+        // NPCの衝突判定（walkable: false のNPCは通れない）
+        const blockingNPC = this.npcs.find(npc =>
+            npc.gridX === newGridX &&
+            npc.gridY === newGridY &&
+            npc.walkable === false
+        );
+        if (blockingNPC) {
+            // 移動できないが向きは変える
+            this.playerDirection = direction;
+            this.player.setTexture(this.idleFrames[direction]);
+            return;
+        }
+
+        // ここまで来たら移動可能
         this.playerDirection = direction;
         this.player.play(animKey);
 
