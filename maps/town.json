@@ -31,14 +31,16 @@
       "sprite": "npc_nurse",
       "x": 5,
       "y": 7,
-      "message": "この町へようこそ！\n冒険者さんですか？"
+      "message": "この町へようこそ！\n冒険者さんですか？",
+      "walkable": false
     },
     {
       "id": "town_villager_2",
       "sprite": "npc_nurse",
       "x": 9,
       "y": 7,
-      "message": "南の出口から\nフィールドに出られますよ。"
+      "message": "南の出口から\nフィールドに出られますよ。",
+      "walkable": false
     }
   ],
   "warps": [
@@ -47,8 +49,8 @@
       "x": 7,
       "y": 14,
       "toMap": "field",
-      "toX": 15,
-      "toY": 16
+      "toX": 4,
+      "toY": 26
     }
   ]
 }

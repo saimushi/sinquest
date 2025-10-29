@@ -46,14 +46,16 @@
       "sprite": "npc_nurse",
       "x": 12,
       "y": 12,
-      "message": "ようこそ、SinQuestの世界へ！\nここは冒険の始まりの地です。"
+      "message": "ようこそ、SinQuestの世界へ！\nここは冒険の始まりの地です。",
+      "walkable": false
     },
     {
       "id": "npc_nurse_2",
       "sprite": "npc_nurse",
       "x": 18,
       "y": 10,
-      "message": "北には危険なモンスターが\nいると聞きました。\n気をつけてくださいね！"
+      "message": "北には危険なモンスターが\nいると聞きました。\n気をつけてくださいね！",
+      "walkable": false
     }
   ],
   "warps": [

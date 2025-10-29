@@ -36,7 +36,8 @@
       "sprite": "npc_nurse",
       "x": 4,
       "y": 3,
-      "message": "ここは試練の洞窟...\n奥には強敵がいるそうです。"
+      "message": "ここは試練の洞窟...\n奥には強敵がいるそうです。",
+      "walkable": false
     }
   ],
   "warps": [
@@ -45,8 +46,8 @@
       "x": 11,
       "y": 18,
       "toMap": "field",
-      "toX": 15,
-      "toY": 10
+      "toX": 24,
+      "toY": 6
     }
   ]
 }
