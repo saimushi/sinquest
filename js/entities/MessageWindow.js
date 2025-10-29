@@ -20,7 +20,7 @@ class MessageWindow {
         const y = GameConfig.height - height - 10;
 
         // ウィンドウ背景
-        this.background = this.scene.add.rectangle(x, y, width, height, 0x000000, 0.8);
+        this.background = this.scene.add.rectangle(x, y, width, height, 0x000000, 0.9);
         this.background.setOrigin(0, 0);
         this.background.setScrollFactor(0);
         this.background.setDepth(100);
@@ -36,8 +36,11 @@ class MessageWindow {
 
         // テキスト表示
         this.textObject = this.scene.add.text(x + 10, y + 10, '', {
-            fontSize: '12px',
+            fontSize: '14px',
             fill: '#ffffff',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 2,
             wordWrap: { width: width - 20 }
         });
         this.textObject.setScrollFactor(0);
@@ -46,8 +49,9 @@ class MessageWindow {
 
         // 続きがあることを示す矢印
         this.arrow = this.scene.add.text(x + width - 20, y + height - 20, '▼', {
-            fontSize: '12px',
-            fill: '#ffffff'
+            fontSize: '14px',
+            fill: '#ffffff',
+            fontStyle: 'bold'
         });
         this.arrow.setScrollFactor(0);
         this.arrow.setDepth(101);
