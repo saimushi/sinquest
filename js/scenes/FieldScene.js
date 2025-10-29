@@ -93,7 +93,8 @@ class FieldScene extends Phaser.Scene {
             const mapWidth = this.currentMapData.width * tileSize;
             const mapHeight = this.currentMapData.height * tileSize;
             this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
-            this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+            // roundPixels=false, lerp=1で滑らかな追従
+            this.cameras.main.startFollow(this.player, false, 1, 1);
 
             console.log(`マップ '${this.currentMapData.name}' の読み込み完了`);
         } catch (error) {
