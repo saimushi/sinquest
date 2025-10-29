@@ -37,15 +37,16 @@ class MapLoader {
             2: 'stone',
             3: 'castle',
             4: 'castle', // 城の入口（見た目は城）
-            5: 'castle', // 建物の入口（見た目は城）
-            6: 'grass'   // 出口（見た目は草）
+            5: 'house',  // 町の入口（見た目は建物）
+            6: 'grass',  // 出口（見た目は草）
+            7: 'cave'    // ダンジョンの入口（見た目は洞窟）
         };
         return tileMap[tileId] || 'grass';
     }
 
     // タイルが通行可能かチェック
     canWalkOn(tileId) {
-        const walkable = [0, 4, 5, 6]; // 草、各種ワープポイント
+        const walkable = [0, 4, 5, 6, 7]; // 草、各種ワープポイント
         return walkable.includes(tileId);
     }
 
@@ -57,8 +58,9 @@ class MapLoader {
             2: 'Stone',
             3: 'Castle',
             4: 'Entrance',
-            5: 'Door',
-            6: 'Exit'
+            5: 'Town',
+            6: 'Exit',
+            7: 'Cave'
         };
         return names[tileId] || 'Unknown';
     }
