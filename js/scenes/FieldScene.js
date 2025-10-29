@@ -1,46 +1,34 @@
-// FieldScene - フィールドマップとキャラクター移動
+// FieldScene - フィールドマップとキャラクター移動（MapLoader対応版）
 class FieldScene extends Phaser.Scene {
     constructor() {
         super({ key: 'FieldScene' });
         this.player = null;
         this.cursors = null;
-        this.isMoving = false; // グリッド移動中かどうか
-        this.moveSpeed = 150; // グリッド移動のスピード（ms）
-        this.playerDirection = 'down'; // プレイヤーの現在の向き
-        this.npcs = []; // NPCリスト
-        this.messageWindow = null; // メッセージウィンドウ
-        this.interactKey = null; // インタラクションキー
-        this.actionPressed = false; // Aボタン押下状態管理
-        this.menuKey = null; // メニューキー
-        this.menuPressed = false; // Xボタン押下状態管理
-        this.playerData = null; // プレイヤーデータ
-        this.menuWindow = null; // メニューウィンドウ
-        this.statusWindow = null; // ステータスウィンドウ
+        this.isMoving = false;
+        this.moveSpeed = 150;
+        this.playerDirection = 'down';
+        this.npcs = [];
+        this.messageWindow = null;
+        this.interactKey = null;
+        this.actionPressed = false;
+        this.menuKey = null;
+        this.menuPressed = false;
+        this.playerData = null;
+        this.menuWindow = null;
+        this.statusWindow = null;
+
+        // マップシステム
+        this.mapLoader = new MapLoader();
+        this.currentMapData = null;
+        this.tiles = [];
+        this.tileSprites = [];
     }
 
-    create() {
+    async create() {
         console.log('FieldScene: フィールド作成開始');
-
-        // マップサイズ（タイル数）
-        const mapWidth = 30;
-        const mapHeight = 30;
-        const tileSize = GameConfig.tileSize;
-
-        // 簡単なマップデータを作成（後でJSONファイルなどから読み込むように拡張可能）
-        this.createMap(mapWidth, mapHeight, tileSize);
 
         // 歩行アニメーションを作成
         this.createAnimations();
-
-        // プレイヤーキャラクターを作成
-        this.createPlayer();
-
-        // カメラ設定
-        this.cameras.main.setBounds(0, 0, mapWidth * tileSize, mapHeight * tileSize);
-        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-
-        // NPCを配置
-        this.createNPCs();
 
         // プレイヤーデータを初期化
         this.playerData = new PlayerData();
@@ -64,37 +52,110 @@ class FieldScene extends Phaser.Scene {
             backgroundColor: '#000000',
             padding: { x: 5, y: 5 }
         });
-        this.debugText.setScrollFactor(0); // カメラに追従しない
+        this.debugText.setScrollFactor(0);
+
+        // 初期マップを読み込み
+        await this.loadAndRenderMap('field');
+    }
+
+    async loadAndRenderMap(mapId, spawnX = null, spawnY = null) {
+        console.log(`マップ '${mapId}' を読み込み中...`);
+
+        try {
+            // マップデータを読み込み
+            this.currentMapData = await this.mapLoader.loadMap(mapId);
+
+            // 既存のタイルとNPCをクリア
+            this.clearMap();
+
+            // マップを描画
+            this.renderMap();
+
+            // プレイヤーを配置
+            const tileSize = this.currentMapData.tileSize;
+            const px = spawnX !== null ? spawnX : this.currentMapData.spawn.x;
+            const py = spawnY !== null ? spawnY : this.currentMapData.spawn.y;
+
+            if (this.player) {
+                // 既存のプレイヤーを移動
+                this.player.setPosition(px * tileSize, py * tileSize);
+                this.player.gridX = px;
+                this.player.gridY = py;
+            } else {
+                // プレイヤーを新規作成
+                this.createPlayer(px, py);
+            }
+
+            // NPCを配置
+            this.createNPCs();
+
+            // カメラ設定
+            const mapWidth = this.currentMapData.width * tileSize;
+            const mapHeight = this.currentMapData.height * tileSize;
+            this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
+            this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+
+            console.log(`マップ '${this.currentMapData.name}' の読み込み完了`);
+        } catch (error) {
+            console.error('マップ読み込みエラー:', error);
+            this.messageWindow.show('マップの読み込みに失敗しました。');
+        }
+    }
+
+    clearMap() {
+        // タイルスプライトを削除
+        this.tileSprites.forEach(row => {
+            row.forEach(tile => {
+                if (tile) tile.destroy();
+            });
+        });
+        this.tileSprites = [];
+
+        // NPCを削除
+        this.npcs.forEach(npc => {
+            if (npc.sprite) npc.sprite.destroy();
+        });
+        this.npcs = [];
+    }
+
+    renderMap() {
+        const mapData = this.currentMapData;
+        const tileSize = mapData.tileSize;
+
+        for (let y = 0; y < mapData.height; y++) {
+            this.tileSprites[y] = [];
+            for (let x = 0; x < mapData.width; x++) {
+                const tileId = mapData.tiles[y][x];
+                const tileKey = this.mapLoader.getTileKey(tileId);
+
+                const tile = this.add.image(x * tileSize, y * tileSize, tileKey);
+                tile.setOrigin(0, 0);
+                tile.setDisplaySize(tileSize, tileSize);
+                this.tileSprites[y][x] = tile;
+            }
+        }
     }
 
     createNPCs() {
-        const tileSize = GameConfig.tileSize;
+        const tileSize = this.currentMapData.tileSize;
+        const npcsData = this.currentMapData.npcs || [];
 
-        // NPC1: 看護師（城の近く）
-        const npc1 = {
-            sprite: this.add.sprite(12 * tileSize, 12 * tileSize, 'npc_nurse'),
-            gridX: 12,
-            gridY: 12,
-            message: 'ようこそ、SinQuestの世界へ！\nここは冒険の始まりの地です。'
-        };
-        npc1.sprite.setOrigin(0, 0);
-        npc1.sprite.setDisplaySize(tileSize, tileSize);
-        this.npcs.push(npc1);
-
-        // NPC2: 看護師（別の場所）
-        const npc2 = {
-            sprite: this.add.sprite(18 * tileSize, 10 * tileSize, 'npc_nurse'),
-            gridX: 18,
-            gridY: 10,
-            message: '北には危険なモンスターが\nいると聞きました。\n気をつけてくださいね！'
-        };
-        npc2.sprite.setOrigin(0, 0);
-        npc2.sprite.setDisplaySize(tileSize, tileSize);
-        this.npcs.push(npc2);
+        npcsData.forEach(npcData => {
+            const npc = {
+                id: npcData.id,
+                sprite: this.add.sprite(npcData.x * tileSize, npcData.y * tileSize, npcData.sprite),
+                gridX: npcData.x,
+                gridY: npcData.y,
+                message: npcData.message
+            };
+            npc.sprite.setOrigin(0, 0);
+            npc.sprite.setDisplaySize(tileSize, tileSize);
+            this.npcs.push(npc);
+        });
     }
 
     createAnimations() {
-        // 下方向の歩行アニメーション (brave_01, 02, 03)
+        // 下方向の歩行アニメーション
         this.anims.create({
             key: 'walk_down',
             frames: [
@@ -107,7 +168,7 @@ class FieldScene extends Phaser.Scene {
             repeat: -1
         });
 
-        // 左方向の歩行アニメーション (brave_04, 05, 06)
+        // 左方向の歩行アニメーション
         this.anims.create({
             key: 'walk_left',
             frames: [
@@ -120,7 +181,7 @@ class FieldScene extends Phaser.Scene {
             repeat: -1
         });
 
-        // 右方向の歩行アニメーション (brave_07, 08, 09)
+        // 右方向の歩行アニメーション
         this.anims.create({
             key: 'walk_right',
             frames: [
@@ -133,7 +194,7 @@ class FieldScene extends Phaser.Scene {
             repeat: -1
         });
 
-        // 上方向の歩行アニメーション (brave_10, 11, 12)
+        // 上方向の歩行アニメーション
         this.anims.create({
             key: 'walk_up',
             frames: [
@@ -155,79 +216,24 @@ class FieldScene extends Phaser.Scene {
         };
     }
 
-    createMap(mapWidth, mapHeight, tileSize) {
-        // シンプルなマップを生成
-        // 0: 草, 1: 水, 2: 石, 3: 城
-        const mapData = [];
+    createPlayer(gridX, gridY) {
+        const tileSize = this.currentMapData.tileSize;
+        const startX = gridX * tileSize;
+        const startY = gridY * tileSize;
 
-        for (let y = 0; y < mapHeight; y++) {
-            mapData[y] = [];
-            for (let x = 0; x < mapWidth; x++) {
-                // 外周を水にする
-                if (x === 0 || x === mapWidth - 1 || y === 0 || y === mapHeight - 1) {
-                    mapData[y][x] = 1; // 水
-                }
-                // 中央付近に城を配置
-                else if (x >= 14 && x <= 16 && y >= 14 && y <= 16) {
-                    mapData[y][x] = 3; // 城
-                }
-                // ランダムに石を配置
-                else if (Math.random() < 0.05) {
-                    mapData[y][x] = 2; // 石
-                }
-                // それ以外は草
-                else {
-                    mapData[y][x] = 0; // 草
-                }
-            }
-        }
-
-        // マップを描画
-        this.mapData = mapData;
-        this.tiles = [];
-
-        for (let y = 0; y < mapHeight; y++) {
-            this.tiles[y] = [];
-            for (let x = 0; x < mapWidth; x++) {
-                const tileType = mapData[y][x];
-                let tileKey = 'grass';
-
-                switch(tileType) {
-                    case 1: tileKey = 'water'; break;
-                    case 2: tileKey = 'stone'; break;
-                    case 3: tileKey = 'castle'; break;
-                }
-
-                const tile = this.add.image(x * tileSize, y * tileSize, tileKey);
-                tile.setOrigin(0, 0);
-                tile.setDisplaySize(tileSize, tileSize);
-                this.tiles[y][x] = { sprite: tile, type: tileType };
-            }
-        }
-    }
-
-    createPlayer() {
-        const tileSize = GameConfig.tileSize;
-        // プレイヤーを中央に配置
-        const startX = 15 * tileSize;
-        const startY = 10 * tileSize;
-
-        // spriteを使用してアニメーション対応
         this.player = this.add.sprite(startX, startY, 'player_1');
         this.player.setOrigin(0, 0);
         this.player.setDisplaySize(tileSize, tileSize);
-
-        // プレイヤーのグリッド座標を保持
-        this.player.gridX = 15;
-        this.player.gridY = 10;
+        this.player.gridX = gridX;
+        this.player.gridY = gridY;
+        this.player.setDepth(10); // プレイヤーを前面に
     }
 
     update() {
-        if (!this.player) return;
+        if (!this.player || !this.currentMapData) return;
 
         // ステータスウィンドウが表示されている場合
         if (this.statusWindow && this.statusWindow.isVisible()) {
-            // ESCキーまたはXボタンで閉じる
             if (Phaser.Input.Keyboard.JustDown(this.menuKey) ||
                 (window.VirtualInput.menu && !this.menuPressed)) {
                 this.statusWindow.hide();
@@ -242,7 +248,6 @@ class FieldScene extends Phaser.Scene {
 
         // メニューウィンドウが表示されている場合
         if (this.menuWindow && this.menuWindow.isVisible()) {
-            // ESCキーまたはXボタンでメニューを閉じる
             if (Phaser.Input.Keyboard.JustDown(this.menuKey) ||
                 (window.VirtualInput.menu && !this.menuPressed)) {
                 this.menuWindow.hide();
@@ -252,14 +257,12 @@ class FieldScene extends Phaser.Scene {
                 this.menuPressed = false;
             }
 
-            // カーソル移動
             if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) {
                 this.menuWindow.moveUp();
             } else if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) {
                 this.menuWindow.moveDown();
             }
 
-            // 選択
             if (Phaser.Input.Keyboard.JustDown(this.interactKey) ||
                 (window.VirtualInput.action && !this.actionPressed)) {
                 const action = this.menuWindow.select();
@@ -274,7 +277,6 @@ class FieldScene extends Phaser.Scene {
 
         // メッセージウィンドウが表示されている場合
         if (this.messageWindow && this.messageWindow.isVisible()) {
-            // SPACEキーまたはAボタンでメッセージ送り/閉じる
             if (Phaser.Input.Keyboard.JustDown(this.interactKey) ||
                 (window.VirtualInput.action && !this.actionPressed)) {
                 this.messageWindow.skipTyping();
@@ -283,7 +285,7 @@ class FieldScene extends Phaser.Scene {
             if (!window.VirtualInput.action) {
                 this.actionPressed = false;
             }
-            return; // 会話中は移動不可
+            return;
         }
 
         // 移動中は他の操作不可
@@ -309,11 +311,10 @@ class FieldScene extends Phaser.Scene {
             this.actionPressed = false;
         }
 
-        // 方向キー入力をチェック（キーボード + バーチャル十字キー）
+        // 方向キー入力をチェック
         let moveX = 0;
         let moveY = 0;
 
-        // キーボード入力
         if (this.cursors.left.isDown || window.VirtualInput.left) {
             moveX = -1;
         } else if (this.cursors.right.isDown || window.VirtualInput.right) {
@@ -332,14 +333,13 @@ class FieldScene extends Phaser.Scene {
         // デバッグ情報更新
         const controlMethod = (window.VirtualInput.up || window.VirtualInput.down ||
                                window.VirtualInput.left || window.VirtualInput.right)
-                               ? 'Touch Controls' : 'Arrow Keys';
+                               ? 'Touch' : 'Keys';
 
         this.debugText.setText([
-            `Position: (${this.player.gridX}, ${this.player.gridY})`,
-            `Tile: ${this.getTileTypeAt(this.player.gridX, this.player.gridY)}`,
-            `Direction: ${this.playerDirection}`,
-            `Control: ${controlMethod}`,
-            `Press SPACE to talk`
+            `Map: ${this.currentMapData.name}`,
+            `Pos: (${this.player.gridX}, ${this.player.gridY})`,
+            `Dir: ${this.playerDirection}`,
+            `Control: ${controlMethod}`
         ]);
     }
 
@@ -368,7 +368,6 @@ class FieldScene extends Phaser.Scene {
     }
 
     tryInteract() {
-        // プレイヤーが向いている方向の座標を計算
         let targetX = this.player.gridX;
         let targetY = this.player.gridY;
 
@@ -379,28 +378,27 @@ class FieldScene extends Phaser.Scene {
             case 'right': targetX += 1; break;
         }
 
-        // その座標にNPCがいるかチェック
+        // NPCがいるかチェック
         const npc = this.npcs.find(n => n.gridX === targetX && n.gridY === targetY);
-
         if (npc) {
-            // NPCと会話開始
             this.messageWindow.show(npc.message);
         }
     }
 
-    movePlayer(dx, dy) {
+    async movePlayer(dx, dy) {
         const newGridX = this.player.gridX + dx;
         const newGridY = this.player.gridY + dy;
 
         // マップ範囲チェック
-        if (newGridX < 0 || newGridX >= this.mapData[0].length ||
-            newGridY < 0 || newGridY >= this.mapData.length) {
+        if (newGridX < 0 || newGridX >= this.currentMapData.width ||
+            newGridY < 0 || newGridY >= this.currentMapData.height) {
             return;
         }
 
-        // 移動可能かチェック（水や障害物には入れない）
-        if (!this.canWalkOn(newGridX, newGridY)) {
-            console.log('移動不可: 障害物');
+        const tileId = this.currentMapData.tiles[newGridY][newGridX];
+
+        // 移動可能かチェック
+        if (!this.mapLoader.canWalkOn(tileId)) {
             return;
         }
 
@@ -423,8 +421,6 @@ class FieldScene extends Phaser.Scene {
         }
 
         this.playerDirection = direction;
-
-        // 歩行アニメーションを再生
         this.player.play(animKey);
 
         // グリッド移動開始
@@ -432,7 +428,7 @@ class FieldScene extends Phaser.Scene {
         this.player.gridX = newGridX;
         this.player.gridY = newGridY;
 
-        const tileSize = GameConfig.tileSize;
+        const tileSize = this.currentMapData.tileSize;
         const targetX = newGridX * tileSize;
         const targetY = newGridY * tileSize;
 
@@ -443,24 +439,24 @@ class FieldScene extends Phaser.Scene {
             y: targetY,
             duration: this.moveSpeed,
             ease: 'Linear',
-            onComplete: () => {
+            onComplete: async () => {
                 this.isMoving = false;
-                // アニメーション停止してアイドルフレームに戻す
                 this.player.stop();
                 this.player.setTexture(this.idleFrames[this.playerDirection]);
+
+                // ワープポイントをチェック
+                await this.checkWarp();
             }
         });
     }
 
-    canWalkOn(gridX, gridY) {
-        const tileType = this.mapData[gridY][gridX];
-        // 水(1)と城(3)には入れない
-        return tileType !== 1 && tileType !== 3;
-    }
+    async checkWarp() {
+        const warps = this.currentMapData.warps || [];
+        const warp = warps.find(w => w.x === this.player.gridX && w.y === this.player.gridY);
 
-    getTileTypeAt(gridX, gridY) {
-        const tileType = this.mapData[gridY][gridX];
-        const names = ['Grass', 'Water', 'Stone', 'Castle'];
-        return names[tileType] || 'Unknown';
+        if (warp) {
+            console.log(`ワープポイント検出: ${warp.toMap} へ移動`);
+            await this.loadAndRenderMap(warp.toMap, warp.toX, warp.toY);
+        }
     }
 }
