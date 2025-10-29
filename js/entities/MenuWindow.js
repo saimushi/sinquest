@@ -24,7 +24,7 @@ class MenuWindow {
         const y = 30;
 
         // メインウィンドウ背景
-        this.background = this.scene.add.rectangle(x, y, width, height, 0x000080, 0.9);
+        this.background = this.scene.add.rectangle(x, y, width, height, 0x000000, 0.9);
         this.background.setOrigin(0, 0);
         this.background.setScrollFactor(0);
         this.background.setDepth(200);
@@ -83,7 +83,7 @@ class MenuWindow {
         const y = 30;
 
         // ステータスウィンドウ背景
-        this.statusBg = this.scene.add.rectangle(x, y, width, height, 0x000080, 0.9);
+        this.statusBg = this.scene.add.rectangle(x, y, width, height, 0x000000, 0.9);
         this.statusBg.setOrigin(0, 0);
         this.statusBg.setScrollFactor(0);
         this.statusBg.setDepth(200);

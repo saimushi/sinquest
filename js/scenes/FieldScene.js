@@ -13,6 +13,8 @@ class FieldScene extends Phaser.Scene {
         this.actionPressed = false;
         this.menuKey = null;
         this.menuPressed = false;
+        this.upPressed = false;
+        this.downPressed = false;
         this.playerData = null;
         this.menuWindow = null;
         this.statusWindow = null;
@@ -259,10 +261,23 @@ class FieldScene extends Phaser.Scene {
                 this.menuPressed = false;
             }
 
-            if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) {
+            // 十字キーでメニュー移動（スマホ対応）
+            if (Phaser.Input.Keyboard.JustDown(this.cursors.up) ||
+                (window.VirtualInput.up && !this.upPressed)) {
                 this.menuWindow.moveUp();
-            } else if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) {
+                this.upPressed = true;
+            }
+            if (!window.VirtualInput.up) {
+                this.upPressed = false;
+            }
+
+            if (Phaser.Input.Keyboard.JustDown(this.cursors.down) ||
+                (window.VirtualInput.down && !this.downPressed)) {
                 this.menuWindow.moveDown();
+                this.downPressed = true;
+            }
+            if (!window.VirtualInput.down) {
+                this.downPressed = false;
             }
 
             if (Phaser.Input.Keyboard.JustDown(this.interactKey) ||

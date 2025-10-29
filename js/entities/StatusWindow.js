@@ -15,7 +15,7 @@ class StatusWindow {
         const y = 30;
 
         // 背景
-        this.background = this.scene.add.rectangle(x, y, width, height, 0x000080, 0.95);
+        this.background = this.scene.add.rectangle(x, y, width, height, 0x000000, 0.95);
         this.background.setOrigin(0, 0);
         this.background.setScrollFactor(0);
         this.background.setDepth(250);
