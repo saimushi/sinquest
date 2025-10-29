@@ -49,6 +49,8 @@ class BootScene extends Phaser.Scene {
         this.load.image('water', 'assets/mapchip/ocean_01.png');
         this.load.image('stone', 'assets/mapchip/mountain_01.png');
         this.load.image('castle', 'assets/mapchip/castle_01.png');
+        this.load.image('house', 'assets/mapchip/house_01.png');
+        this.load.image('cave', 'assets/mapchip/cave_01.png');
 
         // 背景
         this.load.image('background', 'assets/background/back_01.png');
