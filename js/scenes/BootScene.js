@@ -53,6 +53,9 @@ class BootScene extends Phaser.Scene {
         // 背景
         this.load.image('background', 'assets/background/back_01.png');
 
+        // NPC（看護師）
+        this.load.image('npc_nurse', 'assets/charachip/character_03/nurse_01.png');
+
         // アイコンチップ（将来のUI用）
         // this.load.image('icons', 'assets/iconchip/icon_01.png');
     }
