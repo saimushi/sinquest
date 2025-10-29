@@ -4,7 +4,8 @@ window.VirtualInput = {
     down: false,
     left: false,
     right: false,
-    action: false // Aボタン（インタラクション）
+    action: false, // Aボタン（インタラクション）
+    menu: false    // Xボタン（メニュー）
 };
 
 // メインゲームの初期化
@@ -99,6 +100,30 @@ function setupVirtualControls() {
         actionButton.addEventListener('mouseup', (e) => {
             e.preventDefault();
             window.VirtualInput.action = false;
+        });
+    }
+
+    // Xボタン（メニュー）
+    const menuButton = document.getElementById('btn-menu');
+    if (menuButton) {
+        menuButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            window.VirtualInput.menu = true;
+        });
+
+        menuButton.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            window.VirtualInput.menu = true;
+        });
+
+        menuButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            window.VirtualInput.menu = false;
+        });
+
+        menuButton.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            window.VirtualInput.menu = false;
         });
     }
 }

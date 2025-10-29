@@ -11,6 +11,11 @@ class FieldScene extends Phaser.Scene {
         this.messageWindow = null; // メッセージウィンドウ
         this.interactKey = null; // インタラクションキー
         this.actionPressed = false; // Aボタン押下状態管理
+        this.menuKey = null; // メニューキー
+        this.menuPressed = false; // Xボタン押下状態管理
+        this.playerData = null; // プレイヤーデータ
+        this.menuWindow = null; // メニューウィンドウ
+        this.statusWindow = null; // ステータスウィンドウ
     }
 
     create() {
@@ -37,12 +42,20 @@ class FieldScene extends Phaser.Scene {
         // NPCを配置
         this.createNPCs();
 
+        // プレイヤーデータを初期化
+        this.playerData = new PlayerData();
+
         // メッセージウィンドウを作成
         this.messageWindow = new MessageWindow(this);
+
+        // メニューウィンドウを作成
+        this.menuWindow = new MenuWindow(this, this.playerData);
+        this.statusWindow = new StatusWindow(this, this.playerData);
 
         // キーボード入力
         this.cursors = this.input.keyboard.createCursorKeys();
         this.interactKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.menuKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
         // デバッグ情報表示
         this.debugText = this.add.text(10, 10, '', {
@@ -212,6 +225,53 @@ class FieldScene extends Phaser.Scene {
     update() {
         if (!this.player) return;
 
+        // ステータスウィンドウが表示されている場合
+        if (this.statusWindow && this.statusWindow.isVisible()) {
+            // ESCキーまたはXボタンで閉じる
+            if (Phaser.Input.Keyboard.JustDown(this.menuKey) ||
+                (window.VirtualInput.menu && !this.menuPressed)) {
+                this.statusWindow.hide();
+                this.menuWindow.show();
+                this.menuPressed = true;
+            }
+            if (!window.VirtualInput.menu) {
+                this.menuPressed = false;
+            }
+            return;
+        }
+
+        // メニューウィンドウが表示されている場合
+        if (this.menuWindow && this.menuWindow.isVisible()) {
+            // ESCキーまたはXボタンでメニューを閉じる
+            if (Phaser.Input.Keyboard.JustDown(this.menuKey) ||
+                (window.VirtualInput.menu && !this.menuPressed)) {
+                this.menuWindow.hide();
+                this.menuPressed = true;
+            }
+            if (!window.VirtualInput.menu) {
+                this.menuPressed = false;
+            }
+
+            // カーソル移動
+            if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) {
+                this.menuWindow.moveUp();
+            } else if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) {
+                this.menuWindow.moveDown();
+            }
+
+            // 選択
+            if (Phaser.Input.Keyboard.JustDown(this.interactKey) ||
+                (window.VirtualInput.action && !this.actionPressed)) {
+                const action = this.menuWindow.select();
+                this.handleMenuAction(action);
+                this.actionPressed = true;
+            }
+            if (!window.VirtualInput.action) {
+                this.actionPressed = false;
+            }
+            return;
+        }
+
         // メッセージウィンドウが表示されている場合
         if (this.messageWindow && this.messageWindow.isVisible()) {
             // SPACEキーまたはAボタンでメッセージ送り/閉じる
@@ -228,6 +288,16 @@ class FieldScene extends Phaser.Scene {
 
         // 移動中は他の操作不可
         if (this.isMoving) return;
+
+        // ESCキーまたはXボタンでメニューを開く
+        if (Phaser.Input.Keyboard.JustDown(this.menuKey) ||
+            (window.VirtualInput.menu && !this.menuPressed)) {
+            this.menuWindow.show();
+            this.menuPressed = true;
+        }
+        if (!window.VirtualInput.menu) {
+            this.menuPressed = false;
+        }
 
         // SPACEキーまたはAボタンでNPCと会話
         if (Phaser.Input.Keyboard.JustDown(this.interactKey) ||
@@ -271,6 +341,30 @@ class FieldScene extends Phaser.Scene {
             `Control: ${controlMethod}`,
             `Press SPACE to talk`
         ]);
+    }
+
+    handleMenuAction(action) {
+        switch(action) {
+            case 'status':
+                this.menuWindow.hide();
+                this.statusWindow.show();
+                break;
+            case 'item':
+                this.messageWindow.show('アイテムはまだ実装されていません。');
+                this.menuWindow.hide();
+                break;
+            case 'equip':
+                this.messageWindow.show('装備はまだ実装されていません。');
+                this.menuWindow.hide();
+                break;
+            case 'save':
+                this.messageWindow.show('セーブ機能はまだ実装されていません。');
+                this.menuWindow.hide();
+                break;
+            case 'close':
+                this.menuWindow.hide();
+                break;
+        }
     }
 
     tryInteract() {
