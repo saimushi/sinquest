@@ -16,5 +16,13 @@ const GameConfig = {
     },
 
     // ゲームタイトル
-    title: 'SinQuest'
+    title: 'SinQuest',
+
+    // エンカウント設定
+    encounter: {
+        enabled: true,
+        minSteps: 5,
+        maxSteps: 10,
+        encounterTiles: [0] // 草地（タイルID 0）でエンカウント
+    }
 };

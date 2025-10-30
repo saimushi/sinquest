@@ -13,6 +13,9 @@ class PlayerData {
         this.attack = 5;
         this.defense = 3;
         this.speed = 4;
+
+        // 経験値システムのフラグ（ゲーム内イベントで変更可能）
+        this.expEnabled = true;
     }
 
     // レベルアップ処理
