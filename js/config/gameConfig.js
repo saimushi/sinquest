@@ -18,9 +18,6 @@ const GameConfig = {
     // ゲームタイトル
     title: 'SinQuest',
 
-    // 経験値システム（オンオフ可能）
-    expEnabled: true,
-
     // エンカウント設定
     encounter: {
         enabled: true,

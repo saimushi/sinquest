@@ -251,7 +251,7 @@ class BattleScene extends Phaser.Scene {
         // 経験値システムがONの場合のみ経験値を獲得
         let message = `${this.monster.name}を たおした！\n${gold}ゴールドを てにいれた！`;
 
-        if (GameConfig.expEnabled) {
+        if (this.playerData.expEnabled) {
             this.playerData.exp += exp;
             this.playerData.gold += gold;
             message = `${this.monster.name}を たおした！\n${exp}の けいけんちと\n${gold}ゴールドを てにいれた！`;
