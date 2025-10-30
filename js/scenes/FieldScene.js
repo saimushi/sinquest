@@ -18,6 +18,7 @@ class FieldScene extends Phaser.Scene {
         this.playerData = null;
         this.menuWindow = null;
         this.statusWindow = null;
+        this.inputLocked = false; // マップ切り替わり時の入力ロック
 
         // マップシステム
         this.mapLoader = new MapLoader();
@@ -97,6 +98,12 @@ class FieldScene extends Phaser.Scene {
             this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
             // roundPixels=false, lerp=1で滑らかな追従
             this.cameras.main.startFollow(this.player, false, 1, 1);
+
+            // マップ切り替わり直後の入力を300msロック
+            this.inputLocked = true;
+            this.time.delayedCall(300, () => {
+                this.inputLocked = false;
+            });
 
             console.log(`マップ '${this.currentMapData.name}' の読み込み完了`);
         } catch (error) {
@@ -235,6 +242,9 @@ class FieldScene extends Phaser.Scene {
 
     update() {
         if (!this.player || !this.currentMapData) return;
+
+        // マップ切り替わり直後は入力を無視
+        if (this.inputLocked) return;
 
         // ステータスウィンドウが表示されている場合
         if (this.statusWindow && this.statusWindow.isVisible()) {
