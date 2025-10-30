@@ -28,7 +28,8 @@ window.onload = function() {
         scene: [
             BootScene,
             TitleScene,
-            FieldScene
+            FieldScene,
+            BattleScene
         ]
     };
 

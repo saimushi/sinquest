@@ -20,11 +20,21 @@ class FieldScene extends Phaser.Scene {
         this.statusWindow = null;
         this.inputLocked = false; // マップ切り替わり時の入力ロック
 
+        // エンカウントシステム
+        this.stepCount = 0;
+        this.nextEncounter = this.getRandomEncounterSteps();
+
         // マップシステム
         this.mapLoader = new MapLoader();
         this.currentMapData = null;
         this.tiles = [];
         this.tileSprites = [];
+    }
+
+    getRandomEncounterSteps() {
+        const min = GameConfig.encounter.minSteps;
+        const max = GameConfig.encounter.maxSteps;
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     async create() {
@@ -493,6 +503,9 @@ class FieldScene extends Phaser.Scene {
 
                 // ワープポイントをチェック
                 await this.checkWarp();
+
+                // エンカウント判定
+                this.checkEncounter();
             }
         });
     }
@@ -505,5 +518,40 @@ class FieldScene extends Phaser.Scene {
             console.log(`ワープポイント検出: ${warp.toMap} へ移動`);
             await this.loadAndRenderMap(warp.toMap, warp.toX, warp.toY);
         }
+    }
+
+    checkEncounter() {
+        // エンカウントが無効の場合はスキップ
+        if (!GameConfig.encounter.enabled) return;
+
+        // 現在のタイルを取得
+        const tileId = this.currentMapData.tiles[this.player.gridY][this.player.gridX];
+
+        // エンカウント可能なタイルかチェック
+        if (!GameConfig.encounter.encounterTiles.includes(tileId)) {
+            return;
+        }
+
+        // 歩数をカウント
+        this.stepCount++;
+        console.log(`歩数: ${this.stepCount} / ${this.nextEncounter}`);
+
+        // エンカウント判定
+        if (this.stepCount >= this.nextEncounter) {
+            this.stepCount = 0;
+            this.nextEncounter = this.getRandomEncounterSteps();
+            console.log('エンカウント発生！');
+            this.startBattle();
+        }
+    }
+
+    startBattle() {
+        // バトルシーンに移行
+        this.scene.start('BattleScene', {
+            playerData: this.playerData,
+            returnMap: this.currentMapData.id,
+            returnX: this.player.gridX,
+            returnY: this.player.gridY
+        });
     }
 }
