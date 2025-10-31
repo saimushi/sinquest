@@ -285,9 +285,8 @@ class BattleScene extends Phaser.Scene {
 
     gameOver() {
         this.messageWindow.show(`${this.playerData.name}は ちからつきた…`, () => {
-            // ゲームオーバー処理（仮）
-            this.playerData.hp = this.playerData.maxHp;
-            this.returnToField();
+            // タイトル画面に戻る
+            this.scene.start('TitleScene');
         });
     }
 
