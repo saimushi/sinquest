@@ -37,14 +37,23 @@ class FieldScene extends Phaser.Scene {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    init(data) {
+        // バトルから戻ってきた時のデータを保存
+        this.returnData = data || null;
+    }
+
     async create() {
         console.log('FieldScene: フィールド作成開始');
 
         // 歩行アニメーションを作成
         this.createAnimations();
 
-        // プレイヤーデータを初期化
-        this.playerData = new PlayerData();
+        // プレイヤーデータを初期化または復元
+        if (this.returnData && this.returnData.playerData) {
+            this.playerData = this.returnData.playerData;
+        } else {
+            this.playerData = new PlayerData();
+        }
 
         // メッセージウィンドウを作成
         this.messageWindow = new MessageWindow(this);
@@ -67,8 +76,16 @@ class FieldScene extends Phaser.Scene {
         });
         this.debugText.setScrollFactor(0);
 
-        // 初期マップを読み込み
-        await this.loadAndRenderMap('field');
+        // マップを読み込み（バトルから戻った場合は指定位置から、そうでなければ初期マップ）
+        if (this.returnData && this.returnData.returnMap) {
+            await this.loadAndRenderMap(
+                this.returnData.returnMap,
+                this.returnData.returnX,
+                this.returnData.returnY
+            );
+        } else {
+            await this.loadAndRenderMap('field');
+        }
     }
 
     async loadAndRenderMap(mapId, spawnX = null, spawnY = null) {
@@ -176,57 +193,66 @@ class FieldScene extends Phaser.Scene {
     }
 
     createAnimations() {
-        // 下方向の歩行アニメーション
-        this.anims.create({
-            key: 'walk_down',
-            frames: [
-                { key: 'player_1' },
-                { key: 'player_2' },
-                { key: 'player_3' },
-                { key: 'player_2' }
-            ],
-            frameRate: 8,
-            repeat: -1
-        });
+        // アニメーションが既に存在する場合はスキップ
+        if (!this.anims.exists('walk_down')) {
+            // 下方向の歩行アニメーション
+            this.anims.create({
+                key: 'walk_down',
+                frames: [
+                    { key: 'player_1' },
+                    { key: 'player_2' },
+                    { key: 'player_3' },
+                    { key: 'player_2' }
+                ],
+                frameRate: 8,
+                repeat: -1
+            });
+        }
 
-        // 左方向の歩行アニメーション
-        this.anims.create({
-            key: 'walk_left',
-            frames: [
-                { key: 'player_4' },
-                { key: 'player_5' },
-                { key: 'player_6' },
-                { key: 'player_5' }
-            ],
-            frameRate: 8,
-            repeat: -1
-        });
+        if (!this.anims.exists('walk_left')) {
+            // 左方向の歩行アニメーション
+            this.anims.create({
+                key: 'walk_left',
+                frames: [
+                    { key: 'player_4' },
+                    { key: 'player_5' },
+                    { key: 'player_6' },
+                    { key: 'player_5' }
+                ],
+                frameRate: 8,
+                repeat: -1
+            });
+        }
 
-        // 右方向の歩行アニメーション
-        this.anims.create({
-            key: 'walk_right',
-            frames: [
-                { key: 'player_7' },
-                { key: 'player_8' },
-                { key: 'player_9' },
-                { key: 'player_8' }
-            ],
-            frameRate: 8,
-            repeat: -1
-        });
+        if (!this.anims.exists('walk_right')) {
+            // 右方向の歩行アニメーション
+            this.anims.create({
+                key: 'walk_right',
+                frames: [
+                    { key: 'player_7' },
+                    { key: 'player_8' },
+                    { key: 'player_9' },
+                    { key: 'player_8' }
+                ],
+                frameRate: 8,
+                repeat: -1
+            });
+        }
 
-        // 上方向の歩行アニメーション
-        this.anims.create({
-            key: 'walk_up',
-            frames: [
-                { key: 'player_10' },
-                { key: 'player_11' },
-                { key: 'player_12' },
-                { key: 'player_11' }
-            ],
-            frameRate: 8,
-            repeat: -1
-        });
+        if (!this.anims.exists('walk_up')) {
+            // 上方向の歩行アニメーション
+            this.anims.create({
+                key: 'walk_up',
+                frames: [
+                    { key: 'player_10' },
+                    { key: 'player_11' },
+                    { key: 'player_12' },
+                    { key: 'player_11' }
+                ],
+                frameRate: 8,
+                repeat: -1
+            });
+        }
 
         // アイドル（立ち）状態のフレーム
         this.idleFrames = {
