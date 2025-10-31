@@ -37,14 +37,23 @@ class FieldScene extends Phaser.Scene {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    init(data) {
+        // バトルから戻ってきた時のデータを保存
+        this.returnData = data || null;
+    }
+
     async create() {
         console.log('FieldScene: フィールド作成開始');
 
         // 歩行アニメーションを作成
         this.createAnimations();
 
-        // プレイヤーデータを初期化
-        this.playerData = new PlayerData();
+        // プレイヤーデータを初期化または復元
+        if (this.returnData && this.returnData.playerData) {
+            this.playerData = this.returnData.playerData;
+        } else {
+            this.playerData = new PlayerData();
+        }
 
         // メッセージウィンドウを作成
         this.messageWindow = new MessageWindow(this);
@@ -67,8 +76,16 @@ class FieldScene extends Phaser.Scene {
         });
         this.debugText.setScrollFactor(0);
 
-        // 初期マップを読み込み
-        await this.loadAndRenderMap('field');
+        // マップを読み込み（バトルから戻った場合は指定位置から、そうでなければ初期マップ）
+        if (this.returnData && this.returnData.returnMap) {
+            await this.loadAndRenderMap(
+                this.returnData.returnMap,
+                this.returnData.returnX,
+                this.returnData.returnY
+            );
+        } else {
+            await this.loadAndRenderMap('field');
+        }
     }
 
     async loadAndRenderMap(mapId, spawnX = null, spawnY = null) {

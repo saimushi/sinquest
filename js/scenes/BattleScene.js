@@ -291,6 +291,11 @@ class BattleScene extends Phaser.Scene {
     }
 
     returnToField() {
-        this.scene.start('FieldScene');
+        this.scene.start('FieldScene', {
+            playerData: this.playerData,
+            returnMap: this.returnData.mapId,
+            returnX: this.returnData.x,
+            returnY: this.returnData.y
+        });
     }
 }
