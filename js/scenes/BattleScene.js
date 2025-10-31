@@ -235,6 +235,9 @@ class BattleScene extends Phaser.Scene {
         this.playerData.hp = Math.max(0, this.playerData.hp - damage);
         this.updateStatusDisplay();
 
+        // 画面を揺らすエフェクト
+        this.cameras.main.shake(250, 0.015);
+
         this.messageWindow.show(`${this.monster.name}の こうげき！\n${this.playerData.name}は ${damage}の ダメージを うけた！`, () => {
             if (this.playerData.hp <= 0) {
                 this.gameOver();
