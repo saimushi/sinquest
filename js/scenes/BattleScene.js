@@ -294,11 +294,14 @@ class BattleScene extends Phaser.Scene {
     }
 
     returnToField() {
-        this.scene.start('FieldScene', {
-            playerData: this.playerData,
-            returnMap: this.returnData.mapId,
-            returnX: this.returnData.x,
-            returnY: this.returnData.y
-        });
+        // FieldSceneのPlayerDataを更新
+        const fieldScene = this.scene.get('FieldScene');
+        if (fieldScene) {
+            fieldScene.playerData = this.playerData;
+        }
+
+        // BattleSceneを停止してFieldSceneを再開
+        this.scene.stop();
+        this.scene.resume('FieldScene');
     }
 }
