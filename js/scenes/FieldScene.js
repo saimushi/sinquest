@@ -572,12 +572,13 @@ class FieldScene extends Phaser.Scene {
     }
 
     startBattle() {
-        // バトルシーンに移行
-        this.scene.start('BattleScene', {
+        // バトルシーンを起動（FieldSceneは一時停止）
+        this.scene.launch('BattleScene', {
             playerData: this.playerData,
             returnMap: this.currentMapData.id,
             returnX: this.player.gridX,
             returnY: this.player.gridY
         });
+        this.scene.pause();
     }
 }
